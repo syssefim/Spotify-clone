@@ -57,7 +57,12 @@
     <div class="container">
         <h1>Spotify Clone</h1>
         <p>Your music, your way :3</p>
-        <a href="login" class="login-btn">Log In</a>
+        
+        {% if 'username' in session %}
+            <a href="/logout" class="login-btn">Log Out</a>
+        {% else %}
+            <a href="/login" class="login-btn">Log In</a>
+        {% endif %}
     </div>
 </body>
 </html>
