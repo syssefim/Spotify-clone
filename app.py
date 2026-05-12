@@ -1,4 +1,8 @@
+import sys
 from flask import Flask, redirect, url_for, render_template, request, session
+import psycopg2
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 
@@ -6,15 +10,59 @@ app = Flask(__name__)
 # In a real app, this should be a random, hidden string.
 app.secret_key = 'super_secret_key_for_testing'
 
-# Dummy database for demonstration purposes
-USER_DATA = {
-    "admin": "password123",
-    "user1": "hello_world"
-}
+
+
+
+load_dotenv()  # Load environment variables from .env file
+
+
+
+
+
+def check_postgres_connection():
+    print(f"Attempting to connect to {os.getenv('DB_HOST')}...")
+    
+    try:
+        # connect_timeout prevents the script from hanging if blocked by a firewall
+        conn = psycopg2.connect(
+            host=os.getenv("DB_HOST"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASS"),
+            connect_timeout=5 
+        )
+        cursor = conn.cursor()
+        
+        # Execute a lightweight ping
+        cursor.execute("SELECT 1;")
+        cursor.fetchone()
+        
+        print("✅ Success: Connected to the PostgreSQL database and executed ping.")
+        
+        # Clean up
+        cursor.close()
+        conn.close()
+        return True
+
+    except psycopg2.OperationalError as e:
+        print("❌ Error: Connection failed. Verify your credentials, host URL, and AWS Security Group inbound rules.", file=sys.stderr)
+        print(f"Details: {e}", file=sys.stderr)
+        return False
+
+
+
+
+
+
+
+
+
 
 @app.route('/')
 @app.route('/home')
 def home():
+    check_postgres_connection()
+
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
